@@ -6,6 +6,7 @@ data "aws_ssm_parameter" "ecs_ami" {
 name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
 }
 
+
 resource "aws_launch_template" "ecs_launch_template" {
   name          = "${var.product_name}-${var.env_name}-ec2"
   image_id      = data.aws_ssm_parameter.ecs_ami.value
@@ -14,12 +15,6 @@ resource "aws_launch_template" "ecs_launch_template" {
   lifecycle {
     create_before_destroy = true
   }
-  
-  network_interfaces {
-    associate_public_ip_address = true
-  }
-  
-  vpc_security_group_ids = var.security_groups
   
   tag_specifications {
     resource_type = "instance"
@@ -30,8 +25,8 @@ resource "aws_launch_template" "ecs_launch_template" {
 }
 
 resource "aws_autoscaling_group" "ecs_asg" {
-  desired_capacity     = 1
-  max_size             = 2
+  desired_capacity     = 2
+  max_size             = 3
   min_size             = 1
   vpc_zone_identifier  = [var.subnet_id]
   launch_template {
