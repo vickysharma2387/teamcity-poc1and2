@@ -1,4 +1,4 @@
-**Provision Infrastructure in AWS using GitHub Actions:**
+ECS-EC2 Cluster with Terraform, S3 State Storage, and GitHub Actions:
 
 This repository contains Terraform code for setting up an Amazon ECS cluster with EC2 instances, using modularized Terraform configurations. The setup includes storing the Terraform state file in an S3 bucket and automating deployments through a GitHub Actions workflow.
 
@@ -16,17 +16,23 @@ Step 5: Set Up GitHub Actions Workflow
 
 Step 6: Run and Verify
 
+
 Usage - 
+
 
 Prerequisites
 
 1. AWS Account: With appropriate IAM permissions to create ECS clusters, EC2 instances, VPC, security groups, etc.
 
+
 2. GitHub Repository: To store your code and host the GitHub Actions workflow.
+
 
 3. Terraform: Installed locally if running commands manually.
 
+
 4. AWS CLI: To configure AWS access locally if needed.
+
 
 5. GitHub Secrets: Configure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in your GitHub repository secrets for GitHub Actions to access AWS.
 
@@ -34,7 +40,7 @@ Prerequisites
 
 Project Structure
 
-**project-root/
+project-root/
 ├── main.tf                 # Root Terraform module
 ├── outputs.tf              # Output values for root module
 ├── variables.tf            # Input variables for root module
@@ -45,7 +51,7 @@ Project Structure
 │   └── security_group/     # Security group module
 └── .github/
     └── workflows/
-        └── terraform.yml   # GitHub Actions workflow**
+        └── terraform.yml   # GitHub Actions workflow
 
 Steps
 
@@ -64,13 +70,13 @@ Enable versioning on this bucket for better state management.
 In main.tf, add the S3 backend configuration for Terraform to store the state remotely.
 
 
-**terraform {
+terraform {
   backend "s3" {
     bucket = "my-terraform-state-bucket"
     key    = "ecs-cluster/terraform.tfstate"
     region = "us-west-2"  # Update with your AWS region
   }
-}**
+}
 
 
 
@@ -116,45 +122,38 @@ Step 3: Configure main.tf in the Root Module
 
 In the root directory, set up main.tf to call each module, passing necessary variables. The main.tf file also includes environment tags using variables like env_name and product_name.
 
-**provider "aws" {
+provider "aws" {
   region = "us-west-2"
-}**
+}
 
-**module "vpc" {
-  source     = "./Modules/vpc"
+module "vpc" {
+  source     = "./modules/vpc"
   env_name   = var.env_name
   product_name = var.product_name
-}**
+}
 
-**module "ecs-ec2" {
-  source       = "./Modules/ecs-ec2"
-  instance_type = "t3.micro"
-  subnet_id     = module.vpc.subnet_ids[0]
+module "ecs-ec2" {
+  source       = "./modules/ecs-ec2"
+  instance_type = "t2.micro"
   security_groups = [module.security_group.security_group_id]
   env_name       = var.env_name
   product_name   = var.product_name
-}**
+}
 
-**module "security_group" {
-  source       = "./Modules/security_group"
+module "security_group" {
+  source       = "./modules/security_group"
   vpc_id       = module.vpc.vpc_id
   env_name     = var.env_name
   product_name = var.product_name
-}**
-
-**module "ecr" {
-  source     = "./Modules/ecr"
-  env_name   = var.env_name
-  product_name = var.product_name
-}**
+}
 
 
 Step 4: Create dev.tfvars for Environment-Specific Variables
 
 Create a dev.tfvars file in the root directory to define environment-specific values:
 
-**env_name     = "dev"
-product_name = "team city"**
+env_name     = "dev"
+product_name = "team city"
 
 Step 5: Set Up GitHub Actions Workflow
 
@@ -189,15 +188,13 @@ jobs:
           aws-region: us-west-2
 
       - name: Initialize Terraform
-        working-directory: ./terraform
         run: terraform init
 
       - name: Plan Terraform
-        working-directory: ./terraform
         run: terraform plan -var-file="dev.tfvars" -out=tfplan
 
       - name: Apply Terraform
-        working-directory: ./terraform
+        if: github.ref == 'refs/heads/main'
         run: terraform apply tfplan
 
 Step 6: Run and Verify
@@ -206,18 +203,25 @@ Step 6: Run and Verify
 
 Commit and push your code to GitHub. The GitHub Actions workflow will be triggered automatically.
 
+
+
 2. Manual Terraform Apply (Optional):
 
 If running locally, use:
 
-**terraform init
-terraform apply -var-file="dev.tfvars"**
+terraform init
+terraform apply -var-file="dev.tfvars"
+
+
 
 3. Verify in AWS Console:
 
 Check ECS, EC2, VPC, and Security Groups in the AWS Console to confirm resources have been created with the correct configurations.
 
+
 Usage
 
 Modify dev.tfvars for other environments, or create a prod.tfvars for production and update the GitHub Actions workflow to handle multiple environments if needed.
+
+
 This setup modularizes resources, manages state in S3, and automates deployments with GitHub Actions, making it easy to manage and deploy AWS infrastructure with Terraform.
