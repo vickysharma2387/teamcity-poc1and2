@@ -23,3 +23,9 @@ module "security_group" {
   env_name     = var.env_name
   product_name = var.product_name
 }
+
+module "ecr" {
+  source     = "./Modules/ecr"
+  env_name   = var.env_name
+  product_name = var.product_name
+}
