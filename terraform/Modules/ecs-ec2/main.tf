@@ -15,7 +15,7 @@ resource "aws_launch_template" "ecs_launch_template" {
   lifecycle {
     create_before_destroy = true
   }
-  
+  vpc_security_group_ids = var.security_groups
   tag_specifications {
     resource_type = "instance"
 	tags = {
