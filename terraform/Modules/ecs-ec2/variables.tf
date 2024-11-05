@@ -17,3 +17,5 @@ variable "security_groups" {
   type        = list(string)
   default     = []
 }
+
+variable "subnet_id" {}

@@ -11,6 +11,7 @@ module "vpc" {
 module "ecs-ec2" {
   source       = "./Modules/ecs-ec2"
   instance_type = "t2.micro"
+  subnet_id     = module.vpc.subnet_ids[0]
   security_groups = [module.security_group.security_group_id]
   env_name       = var.env_name
   product_name   = var.product_name
