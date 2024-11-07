@@ -2,7 +2,6 @@ data "aws_caller_identity" "current" {}
  
 resource "aws_s3_bucket" "lambda_bucket" {
   bucket = "${var.product_name}-${var.env_name}-s3"
-  acl    = "private"
 }
  
 # Block public access settings for the bucket
