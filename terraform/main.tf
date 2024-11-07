@@ -29,3 +29,19 @@ module "ecr" {
   env_name   = var.env_name
   product_name = var.product_name
 }
+
+module "s3_bucket" {
+  source      = "./Modules/s3"
+  env_name       = var.env_name
+  product_name   = var.product_name
+}
+
+module "lambda" {
+  source                 = "./Modules/lambda"
+  env_name               = var.env_name
+  product_name           = var.product_name
+  lambda_zip_path        = "lambda_function.zip"
+  environment_variables  = {
+    KEY = "value"
+  }
+}
