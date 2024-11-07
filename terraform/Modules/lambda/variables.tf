@@ -1,8 +1,3 @@
-variable "lambda_zip_path" {
-  description = "Path to the Lambda deployment package"
-  type        = string
-}
-
 variable "environment_variables" {
   description = "Environment variables for the Lambda function"
   type        = map(string)
