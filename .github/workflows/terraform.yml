@@ -45,7 +45,7 @@ jobs:
         
       - name: Get Terraform Outputs
         id: get-outputs
-        working-directory: ./terraform/Modules/s3
+        working-directory: ./terraform
         run: |
           terraform output -json > tf-outputs.json
           echo "S3_BUCKET_NAME=$(jq -r '.s3_bucket_name.value' tf-outputs.json)" >> $GITHUB_ENV
