@@ -13,9 +13,7 @@ bucket = aws_s3_bucket.lambda_bucket.id
     "Statement": [
       {
         "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/YOUR_ROLE_NAME"
-        },
+        "Principal": "*",
         "Action": "s3:*",
         "Resource": [
           "${aws_s3_bucket.lambda_bucket.arn}",
