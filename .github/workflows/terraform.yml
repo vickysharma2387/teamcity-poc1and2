@@ -23,6 +23,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
+          
+      - name: Zip Lambda Function
+        working-directory: ./terraform
+        run: |
+          cd Modules/lambda
+          zip -r lambda_function.zip lambda_function.py
+          mv lambda_function.zip ./terraform/
 
       - name: Initialize Terraform
         working-directory: ./terraform
@@ -42,15 +49,6 @@ jobs:
         run: |
           terraform output -json > tf-outputs.json
           echo "S3_BUCKET_NAME=$(jq -r '.s3_bucket_name.value' tf-outputs.json)" >> $GITHUB_ENV
- 
-      - name: Zip Lambda Function
-        working-directory: ./terraform
-        run: |
-          cd Modules/lambda
-          zip -r lambda_function.zip lambda_function.py
-          mv lambda_function.zip ../../
-          pwd
-          ls
           
       - name: Install AWS CLI
         run: |
