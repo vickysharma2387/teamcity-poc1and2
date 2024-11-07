@@ -1,5 +1,5 @@
 data "aws_caller_identity" "current" {}
- 
+
 resource "aws_s3_bucket" "lambda_bucket" {
   bucket = "${var.product_name}-${var.env_name}-s3"
 }
@@ -85,7 +85,7 @@ resource "aws_s3_bucket_notification" "lambda_trigger" {
  
   lambda_function {
     events = ["s3:ObjectCreated:*"] 
-    lambda_function_arn = aws_lambda_function.lambda.arn
+    lambda_function_arn = var.lambda_function_arn
   }
  
   depends_on = [aws_lambda_function.lambda]

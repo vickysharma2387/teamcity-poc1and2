@@ -13,3 +13,7 @@ variable "product_name" {
   description = "Product name for tagging"
   type        = string
 }
+
+variable "s3_bucket_name" { }
+
+variable "s3_bucket_arn" { }
