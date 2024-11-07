@@ -43,12 +43,14 @@ jobs:
         working-directory: ./terraform
         run: terraform apply tfplan
         
-      - name: Extract Values from dev.tfvars and Set Env Vars
-        working-directory: ./terraform
+      - name: Extract Values from Terraform Outputs and Set Env Vars
         id: set-vars
+        working-directory: ./terraform
         run: |
           export PRODUCT_NAME=$(terraform output -raw product_name)
           export ENV_NAME=$(terraform output -raw env_name)
+          echo "PRODUCT_NAME=${PRODUCT_NAME}"
+          echo "ENV_NAME=${ENV_NAME}"
           echo "PRODUCT_NAME=${PRODUCT_NAME}" >> $GITHUB_ENV
           echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_ENV
  
