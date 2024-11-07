@@ -43,30 +43,33 @@ jobs:
         working-directory: ./terraform
         run: terraform apply tfplan
         
-      - name: Get Terraform Outputs
-        id: get-outputs
+      - name: Extract Values from dev.tfvars and Set Env Vars
         working-directory: ./terraform
+        id: set-vars
         run: |
-          terraform output -json > tf-outputs.json
-          echo "S3_BUCKET_NAME=$(jq -r '.s3_bucket_name.value' tf-outputs.json)" >> $GITHUB_ENV
-          
+          export PRODUCT_NAME=$(terraform output -raw product_name)
+          export ENV_NAME=$(terraform output -raw env_name)
+          echo "PRODUCT_NAME=${PRODUCT_NAME}" >> $GITHUB_ENV
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_ENV
+ 
       - name: Install AWS CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y awscli
-
-      - name: Upload to S3 using AWS CLI
+ 
+      - name: Upload Lambda to S3
         working-directory: ./terraform
         run: |
-          aws s3 cp lambda_function.zip s3://${{ env.S3_BUCKET_NAME }}/lambda_function.zip
+          aws s3 cp lambda_function.zip s3://${{ env.PRODUCT_NAME }}-${{ env.ENV_NAME }}-s3/lambda_function.zip
         env:
           region: us-west-2
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
  
       - name: Update Lambda Function Code using AWS CLI
+        working-directory: ./terraform
         run: |
-          aws lambda update-function-code --function-name my-python-lambda --s3-bucket ${{ env.S3_BUCKET_NAME }} --s3-key lambda_function.zip
+          aws lambda update-function-code --function-name my-python-lambda --s3-bucket ${{ env.PRODUCT_NAME }}-${{ env.ENV_NAME }}-s3 --s3-key lambda_function.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
