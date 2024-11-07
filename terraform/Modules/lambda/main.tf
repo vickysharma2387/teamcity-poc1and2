@@ -22,7 +22,7 @@ resource "aws_lambda_function" "lambda" {
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.9"
-  s3_bucket     = resource.aws_s3_bucket.lambda_bucket.bucket
+  s3_bucket     = aws_s3_bucket.lambda_bucket.bucket
   s3_key        = "lambda_function.zip"
 
   environment {
@@ -40,8 +40,16 @@ resource "aws_iam_role_policy" "lambda_policy2" {
       {
         Action   = ["s3:GetObject"]
         Effect   = "Allow"
-        Resource = "${resource.aws_s3_bucket.lambda_bucket.arn}/*"
+        Resource = "${aws_s3_bucket.lambda_bucket.arn}/*"
       },
     ]
   })
+}
+
+output "lambda_name" {
+  value = aws_lambda_function.lambda
+}
+
+output "lambda_arn" {
+  value = aws_lambda_function.lambda.arn
 }

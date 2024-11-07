@@ -85,8 +85,16 @@ resource "aws_s3_bucket_notification" "lambda_trigger" {
  
   lambda_function {
     events = ["s3:ObjectCreated:*"] 
-    lambda_function_arn = resource.aws_lambda_function.lambda.arn
+    lambda_function_arn = aws_lambda_function.lambda.arn
   }
  
-  depends_on = [resource.aws_lambda_function.lambda]
+  depends_on = [aws_lambda_function.lambda]
+}
+
+output "bucket_name" {
+  value = aws_s3_bucket.lambda_bucket.bucket
+}
+
+output "bucket_arn" {
+  value = aws_s3_bucket.lambda_bucket.arn
 }
