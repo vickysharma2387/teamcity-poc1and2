@@ -22,10 +22,26 @@ resource "aws_lambda_function" "lambda" {
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.9"
-  filename      = var.lambda_zip_path
-  source_code_hash = filebase64sha256(var.lambda_zip_path)
+  s3_bucket     = aws_s3_bucket.lambda_bucket.bucket
+  s3_key        = "lambda_function.zip"
 
   environment {
     variables = var.environment_variables
   }
+}
+ 
+resource "aws_iam_role_policy" "lambda_policy2" {
+  name = "lambda_s3_policy"
+  role = aws_iam_role.lambda_execution_role.id
+ 
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = ["s3:GetObject"]
+        Effect   = "Allow"
+        Resource = "${aws_s3_bucket.lambda_bucket.arn}/*"
+      },
+    ]
+  })
 }
