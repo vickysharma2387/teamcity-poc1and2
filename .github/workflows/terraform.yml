@@ -44,26 +44,33 @@ jobs:
           echo "S3_BUCKET_NAME=$(jq -r '.s3_bucket_name.value' tf-outputs.json)" >> $GITHUB_ENV
  
       - name: Zip Lambda Function
+        working-directory: ./terraform
         run: |
-          cd terraform/Modules/lambda
+          cd Modules/lambda
           zip -r lambda_function.zip lambda_function.py
           mv lambda_function.zip ../../
+          pwd
+          ls
+          
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
 
-      - name: Upload to S3
-        uses: aws-actions/s3-sync@v2
-        with:
-          bucket: ${{ env.S3_BUCKET_NAME }}
-          source: lambda_function.zip
+      - name: Upload to S3 using AWS CLI
+        working-directory: ./terraform
+        run: |
+          aws s3 cp lambda_function.zip s3://${{ env.S3_BUCKET_NAME }}/lambda_function.zip
+        env:
           region: us-west-2
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
  
-      - name: Update Lambda Function Code
-        uses: aws-actions/aws-lambda-update-function-code@v1
-        with:
-          function-name: "my-python-lambda"
-          s3-bucket: ${{ env.S3_BUCKET_NAME }}
-          s3-key: "lambda_function.zip"
-          region: us-west-2
+      - name: Update Lambda Function Code using AWS CLI
+        run: |
+          aws lambda update-function-code --function-name my-python-lambda --s3-bucket ${{ env.S3_BUCKET_NAME }} --s3-key lambda_function.zip
+        env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-west-2
+          
