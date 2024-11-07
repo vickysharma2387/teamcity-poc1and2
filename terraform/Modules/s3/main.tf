@@ -2,8 +2,10 @@ data "aws_caller_identity" "current" {}
  
 resource "aws_s3_bucket" "lambda_bucket" {
   bucket = "${var.product_name}-${var.env_name}-s3"
+  acl    = "private"
 }
  
+# Block public access settings for the bucket
 resource "aws_s3_bucket_public_access_block" "lambda_bucket_block" {
 bucket = aws_s3_bucket.lambda_bucket.id
   block_public_acls       = true
@@ -12,7 +14,7 @@ bucket = aws_s3_bucket.lambda_bucket.id
   restrict_public_buckets = true
 }
  
-# S3 bucket policy with controlled access
+# Create a bucket policy with a dynamic bucket ARN
 resource "aws_s3_bucket_policy" "lambda_bucket_policy" {
 bucket = aws_s3_bucket.lambda_bucket.id
   policy = <<POLICY
@@ -21,7 +23,9 @@ bucket = aws_s3_bucket.lambda_bucket.id
     "Statement": [
       {
         "Effect": "Allow",
-        "Principal": "*",
+        "Principal": {
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
         "Action": "s3:*",
         "Resource": [
           "${aws_s3_bucket.lambda_bucket.arn}",
@@ -31,4 +35,42 @@ bucket = aws_s3_bucket.lambda_bucket.id
     ]
   }
   POLICY
+}
+ 
+# Create an IAM policy to grant permissions to manage the S3 bucket dynamically
+resource "aws_iam_policy" "s3_bucket_management_policy" {
+  name        = "S3BucketManagementPolicy"
+  description = "Policy to manage S3 bucket policy and public access block settings"
+  policy      = <<POLICY
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:PutBucketPolicy",
+          "s3:GetBucketPolicy",
+          "s3:DeleteBucketPolicy",
+          "s3:PutBucketPublicAccessBlock",
+          "s3:GetBucketPublicAccessBlock"
+        ],
+        "Resource": [
+          "${aws_s3_bucket.lambda_bucket.arn}",
+          "${aws_s3_bucket.lambda_bucket.arn}/*"
+        ]
+      }
+    ]
+  }
+  POLICY
+}
+ 
+# Extract the current IAM user name from the ARN
+locals {
+  current_user_name = regex("([^:/]+)$", data.aws_caller_identity.current.arn)[0]
+}
+ 
+# Attach the policy to the current IAM user
+resource "aws_iam_user_policy_attachment" "user_policy_attachment" {
+  user       = local.current_user_name
+  policy_arn = aws_iam_policy.s3_bucket_management_policy.arn
 }
