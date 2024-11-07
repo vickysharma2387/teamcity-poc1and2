@@ -74,7 +74,7 @@ resource "aws_iam_user_policy_attachment" "user_policy_attachment" {
   policy_arn = aws_iam_policy.s3_bucket_management_policy.arn
 }
 
-resource "aws_s3_bucket_object" "lambda_function_zip" {
+resource "aws_s3_object" "lambda_function_zip" {
   bucket = aws_s3_bucket.lambda_bucket.bucket
   key = "lambda_function.zip"
   source = "lambda_function.zip"
@@ -85,8 +85,8 @@ resource "aws_s3_bucket_notification" "lambda_trigger" {
  
   lambda_function {
     events = ["s3:ObjectCreated:*"] 
-    lambda_function_arn = aws_lambda_function.lambda.arn
+    lambda_function_arn = resource.aws_lambda_function.lambda.arn
   }
  
-  depends_on = [aws_lambda_function.lambda]
+  depends_on = [resource.aws_lambda_function.lambda]
 }
