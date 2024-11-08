@@ -31,18 +31,20 @@ module "ecr" {
 }
 
 module "s3_bucket" {
-  source      = "./Modules/s3"
+  source         = "./Modules/s3"
+  bucket_name    = "${var.product_name}-${var.env_name}-s3"
   env_name       = var.env_name
   product_name   = var.product_name
-  lambda_function_arn = module.lambda.lambda_arn
+  lambda_function_arn = module.lambda.lambda_function_arn
 }
 
 module "lambda" {
-  source                 = "./Modules/lambda"
-  env_name               = var.env_name
-  product_name           = var.product_name
-  s3_bucket_name         = module.s3_bucket.bucket_name
-  s3_bucket_arn          = module.s3_bucket.bucket_arn
+  source        = "./Modules/lambda"
+  lambda_function_name = "${var.product_name}-${var.env_name}-lambda"
+  env_name      = var.env_name
+  product_name  = var.product_name
+  s3_bucket     = var.lambda_code_bucket
+  s3_key        = var.lambda_code_key
   environment_variables  = {
     KEY = "value"
   }

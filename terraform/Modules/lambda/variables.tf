@@ -14,6 +14,12 @@ variable "product_name" {
   type        = string
 }
 
-variable "s3_bucket_name" { }
-
-variable "s3_bucket_arn" { }
+variable "s3_bucket" {
+  description = "The S3 bucket for the Lambda code"
+  type        = string
+}
+ 
+variable "s3_key" {
+  description = "The S3 key for the Lambda function code"
+  type        = string
+}

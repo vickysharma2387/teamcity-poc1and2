@@ -1,55 +1,42 @@
-resource "aws_iam_role" "lambda_execution_role" {
-  name = "${var.product_name}-${var.env_name}-lambda-execution-role"
+resource "aws_lambda_function" "lambda_function" {
+  function_name    = var.function_name
+  s3_bucket        = var.s3_bucket
+  s3_key           = var.s3_key
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.9"
+  role             = aws_iam_role.lambda_role.arn
+}
+ 
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda-s3-execution-role"
+ 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Service = "lambda.amazonaws.com"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+Service = "lambda.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
       }
-      Action = "sts:AssumeRole"
-    }]
+    ]
   })
 }
-
-resource "aws_iam_role_policy_attachment" "lambda_policy" {
-  role       = aws_iam_role.lambda_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-resource "aws_lambda_function" "lambda" {
-  function_name = "${var.product_name}-${var.env_name}-lambda"
-  role          = aws_iam_role.lambda_execution_role.arn
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.9"
-  s3_bucket     = var.s3_bucket_name
-  s3_key        = "lambda_function.zip"
-
-  environment {
-    variables = var.environment_variables
-  }
-}
  
-resource "aws_iam_role_policy" "lambda_policy2" {
-  name = "lambda_s3_policy"
-  role = aws_iam_role.lambda_execution_role.id
- 
+resource "aws_iam_role_policy" "lambda_policy" {
+  name = "lambda-s3-policy"
+role = aws_iam_role.lambda_role.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Action   = ["s3:GetObject"]
-        Effect   = "Allow"
-        Resource = "${var.s3_bucket_arn}/*"
-      },
+        Effect = "Allow"
+        Action = [
+          "s3:*"
+        ]
+        Resource = "*"
+      }
     ]
   })
-}
-
-output "lambda_name" {
-  value = aws_lambda_function.lambda
-}
-
-output "lambda_arn" {
-  value = aws_lambda_function.lambda.arn
 }
