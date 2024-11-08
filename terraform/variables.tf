@@ -22,13 +22,3 @@ variable "lambda_code_key" {
   description = "The S3 key for the Lambda code zip file"
   type        = string
 }
-
-variable "bucket_name" {
-  description = "The name of the S3 bucket"
-  type        = string
-}
- 
-variable "lambda_function_name" {
-  description = "The name of the Lambda function"
-  type        = string
-}
